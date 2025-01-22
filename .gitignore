@@ -2,3 +2,5 @@
 /back/node_modules 
 /back/package-lock.json
 /back/package.json
+/back/server.js
+/front/phpmyadmin
