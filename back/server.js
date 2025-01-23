@@ -9,7 +9,12 @@ const path = require('path');
 const fs = require('fs');
 const app = express();
 
-const secretKey = 'keepass';
+const secretKey = require('./config.json');
+
+//Cacher les logs de git en redirigeant vers un fichier qui sera mis dans le gitignore
+const config = require('./config.json');
+
+
 
 
 //-------------------------------------DOSSIER POUR STOCKER IMAGE--------------------------------------------//
@@ -41,10 +46,10 @@ app.use(cors());
 app.use(express.json());
 
 const db = mysql.createConnection({
-    host: 'localhost',
-    user: 'root',
-    password: 'root',
-    database: 'utilisateur'
+    host: config.host,
+    user: config.user,
+    password: config.password,
+    database: config.database
 });
 db.connect(err => {
     if (err) {
@@ -102,7 +107,7 @@ function checkToken(req, res, next) {
     const token = req.headers['authorization'];
     
     if (token) {
-        jwt.verify(token.split(' ')[1], secretKey, (err, decoded) => {
+        jwt.verify(token.split(' ')[1], secretKey.key, (err, decoded) => {
             if (err) {
                 return res.status(401).json({ message: 'Token invalide ou expiré' });
             }
@@ -137,7 +142,7 @@ app.post('/login', loginLimiter, checkToken, async (req, res) => {
 
         const token = jwt.sign(
             { id: user.id, username: user.Login },
-            secretKey,
+            secretKey.key,
             { expiresIn: '1h' }
         );
 
