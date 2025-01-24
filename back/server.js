@@ -101,10 +101,11 @@ function checkToken(req, res, next) {
 
 // Route pour la connexion avec un limiteur spécifique
 app.post('/login', loginLimiter, checkToken, async (req, res) => {
-    const { username, password } = req.body;
+    const { email, password } = req.body;
 
-    const sql = 'SELECT * FROM user WHERE Login = ?';
-    db.query(sql, [username], (err, results) => {
+    const sql = 'SELECT * FROM user WHERE email = ?';
+    db.query(sql, [email], (err, results) => {
+        console.log(email);
         if (err) {
             return res.status(500).json({ message: 'Erreur serveur' });
         }
@@ -113,13 +114,13 @@ app.post('/login', loginLimiter, checkToken, async (req, res) => {
         }
 
         const user = results[0];
-        const isMatch = bcrypt.compareSync(password, user.MDP);
+        const isMatch = bcrypt.compareSync(password, user.password);
         if (!isMatch) {
             return res.status(400).json({ message: 'Mot de passe incorrect' });
         }
 
         const token = jwt.sign(
-            { id: user.id, username: user.Login },
+            { id: user.id, email: user.email },
             secretKey.key,
             { expiresIn: '1h' }
         );
