@@ -79,28 +79,6 @@ const loginLimiter = rateLimit({
 // Utiliser le rate-limiter global pour toutes les routes
 app.use(globalLimiter);
 
-//----------------------------RECUPERER IMAGE-------------------------------------------//
-
-app.get('/user/:id', (req, res) => {
-    const userId = req.params.id;
-
-    // Requête SQL pour récupérer les informations de l'utilisateur
-    const sql = 'SELECT PDP FROM user WHERE Login = ?';
-    db.query(sql, [userId], (err, result) => {
-        if (err) {
-            console.error('Erreur lors de la requête SQL:', err);
-            return res.status(500).json({ message: 'Erreur serveur, veuillez réessayer plus tard.' });
-        }
-
-        // Si un utilisateur est trouvé, on le renvoie
-        if (result.length > 0) {
-            return res.json(result[0]);  // Renvoie les détails de l'utilisateur
-        } else {
-            return res.status(404).json({ message: 'Utilisateur non trouvé' });
-        }
-    });
-});
-
 //-------------------------------FONCTION POUR TOKEN----------------------------------------//
 
 function checkToken(req, res, next) {
@@ -157,46 +135,36 @@ app.post('/login', loginLimiter, checkToken, async (req, res) => {
 
 // Route POST pour l'inscription avec multer pour gérer les fichiers
 app.post('/register', upload.single('capture'), async (req, res) => {
-    const { username, password } = req.body;
-    const capture = req.file ? req.file.path : null;
+    const { firstname, name, email, password } = req.body;
+
+    // Validation de l'email
+    if (!email.includes('@')) {
+        return res.status(400).json({ message: 'Email invalide' });
+    }
 
     // Vérifier si le nom d'utilisateur existe déjà
-    const sqlSelect = 'SELECT * FROM user WHERE Login = ?';
-    db.query(sqlSelect, [username], (err, results) => {
+    const sqlSelect = 'SELECT * FROM user WHERE email = ?';
+    db.query(sqlSelect, [email], (err, results) => {
         if (err) {
             return res.status(500).json({ message: 'Erreur serveur lors de la vérification de l\'utilisateur' });
         }
 
         if (results.length > 0) {
-            return res.status(400).json({ message: 'Nom d\'utilisateur déjà pris' });
+            return res.status(400).json({ message: 'Email déjà pris' });
         }
 
         // Hasher le mot de passe
         const hashedPassword = bcrypt.hashSync(password, 10);
 
-        // Gérer l'absence de capture (photo de profil)
-        let pdpValue = capture ? capture : 'mon-projet-backend/uploads/pdp.jpg';
-
-        // Assurez-vous que pdpValue est une chaîne de caractères avant de tenter de la manipuler
-        if (typeof pdpValue === 'string') {
-            // Retirer le chemin du système de fichiers (supposons que c'est un chemin absolu)
-            pdpValue = pdpValue.replace('/var/www/html/', '');
-        }
-
-        // Exemple de construction de l'URL complète pour la source de l'image
-        const imageUrl = `../${pdpValue}`;
-
-        console.log(pdpValue);
-
         // Insérer le nouvel utilisateur dans la base de données
-        const sqlInsert = 'INSERT INTO user (Login, MDP, Email, PDP) VALUES (?, ?, "nul", ?)';
-        db.query(sqlInsert, [username, hashedPassword, imageUrl], (err, result) => {
+        const sqlInsert = 'INSERT INTO user (nom, prenom, email, password) VALUES (?, ?, ?, ?)';
+        db.query(sqlInsert, [firstname, name, email, hashedPassword], (err, result) => {
             if (err) {
                 console.log(err);
                 return res.status(500).json({ message: 'Erreur lors de l\'inscription dans la base de données' });
             }
 
-            res.status(201).json({ message: 'Inscription réussie', userId: result.insertId });
+            res.status(201).json({ message: 'Inscription réussie', userId: result.insertId, email });
         });
     });
 });
@@ -347,7 +315,7 @@ app.put('/changer-nom', (req, res) => {
 
 
 // Démarrer le serveur
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
     console.log(`Serveur en écoute sur le port ${PORT}`);
 });
