@@ -1,6 +1,3 @@
-/phpmyadmin
 /back/node_modules 
-/back/package-lock.json
-/back/package.json
 /back/config.json
 /front/phpmyadmin
