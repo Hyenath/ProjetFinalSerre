@@ -36,7 +36,7 @@ document.getElementById('enregistrer').addEventListener('submit', function(e) {
     .then(data => {
         if (data.message === 'Inscription réussie') {
             alert('Inscription réussie ! Vous pouvez maintenant vous connecter.');
-            window.location.href = 'login.html'; // Rediriger vers la page de connexion
+            window.location.href = 'index.html'; // Rediriger vers la page de connexion
         } else {
             alert('Erreur lors de l\'inscription : ' + data.message);
         }
