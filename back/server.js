@@ -101,7 +101,9 @@ function checkToken(req, res, next) {
 
 // Route pour la connexion avec un limiteur spécifique
 app.post('/login', loginLimiter, checkToken, async (req, res) => {
+    console.log("Données reçues:", req.body);  // Ajoute ceci pour voir les données
     const { email, password } = req.body;
+    console.log("Email reçu:", email);  // Vérifie si l'email est bien reçu
 
     const sql = 'SELECT * FROM user WHERE email = ?';
     db.query(sql, [email], (err, results) => {

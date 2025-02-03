@@ -1,6 +1,7 @@
 document.getElementById('loginForm').addEventListener('submit', function(e) {
     e.preventDefault(); // Empêche la soumission par défaut
-
+    console.log("lancement")
+    
     // Récupérer les valeurs des champs
     const email = document.getElementById('Email').value;
     const password = document.getElementById('Password').value;
